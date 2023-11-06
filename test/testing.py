@@ -10,7 +10,7 @@ class CompOfFormTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
-        with open('comparison_of_formulation_test.json') as f:
+        with open('../test_docs/comparison_of_formulation_test.json') as f:
             templates = json.load(f)
         cls.true_s = templates['true_s']
         cls.true_i = templates['true_i']
@@ -48,8 +48,8 @@ class CompOfFormTestCase(unittest.TestCase):
 class ProfStandardTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.p = ps.Professional_Standard('06.001.docx')
-        with open('prof_standard_test.json') as f:
+        cls.p = ps.Professional_Standard('../test_docs/06.001.docx')
+        with open('../test_docs/prof_standard_test.json') as f:
             templates = json.load(f)
         cls.gen_labor_funcs = templates['gen_labor_func']
         cls.professions = templates['professions']
@@ -86,7 +86,7 @@ class IntegrationTestsCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.p = ps.Professional_Standard('06.001.docx')
+        cls.p = ps.Professional_Standard('../test_docs/06.001.docx')
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         cls.cof = Comparison_Of_Formulations()
 
