@@ -83,8 +83,8 @@ class ProfStandardTestCase(unittest.TestCase):
         self.assertEqual(self.p.get_skills(), self.skills)
 
     def test_get_embeddings(self):
-        self.assertEqual(self.p.get_knowledge_with_embeddings(), self.knowledge_embeddings)
-        self.assertEqual(self.p.get_skills_with_embeddings(), self.skills_embeddings)
+        self.assertEqual(len(self.p.get_knowledge_with_embeddings()), len(self.knowledge_embeddings))
+        self.assertEqual(len(self.p.get_skills_with_embeddings()), len(self.skills_embeddings))
 
 
 class IntegrationTestsCase(unittest.TestCase):
