@@ -6,9 +6,9 @@ from torch import empty
 from copmofform import Comparison_Of_Formulations
 import warnings
 
-TESTDATA_FILENAME1 = os.path.join(os.path.dirname(__file__), 'test_docs\comparison_of_formulation_test.json')
-TESTDATA_FILENAME2 = os.path.join(os.path.dirname(__file__), 'test_docs\prof_standard_test.json')
-TESTDATA_FILENAME3 = os.path.join(os.path.dirname(__file__), 'test_docs\\06.001.docx')
+TESTDATA_FILENAME1 = os.path.join(os.path.dirname(__file__), 'test_docs/comparison_of_formulation_test.json')
+TESTDATA_FILENAME2 = os.path.join(os.path.dirname(__file__), 'test_docs/prof_standard_test.json')
+TESTDATA_FILENAME3 = os.path.join(os.path.dirname(__file__), 'test_docs/06.001.docx')
 
 
 class CompOfFormTestCase(unittest.TestCase):
