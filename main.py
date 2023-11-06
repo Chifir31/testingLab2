@@ -1,7 +1,7 @@
 import os
 from copmofform import Comparison_Of_Formulations
 import profstandard as ps
-import docx
+
 
 if __name__ == '__main__':
     cof = Comparison_Of_Formulations()
