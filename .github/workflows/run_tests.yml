@@ -18,3 +18,6 @@ jobs:
         run: pip install -r requirements.txt
       - name: Run tests
         run:  python -m unittest test/testing.py -v
+      - name: Coveralls GitHub Action
+        uses: coverallsapp/github-action@v2.2.3
+
