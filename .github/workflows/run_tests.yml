@@ -19,7 +19,8 @@ jobs:
       - name: Run tests
         run:  python -m unittest test/testing.py -v
       - name: Upload coverage data to coveralls.io
-        env: GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
             pip install coveralls
             coveralls --service=github
