@@ -1,5 +1,5 @@
 [![Automated tests](https://github.com/Chifir31/testingLab2/actions/workflows/run_tests.yml/badge.svg)](https://github.com/Chifir31/testingLab2/actions/workflows/run_tests.yml)
-[![Coverage Status](https://coveralls.io/repos/github/Chifir31/testingLab2/badge.svg)](https://coveralls.io/github/Chifir31/testingLab2)
+[![Coverage Status](https://coveralls.io/repos/github/Chifir31/testingLab2/badge.svg?branch=master)](https://coveralls.io/github/Chifir31/testingLab2?branch=master)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Chifir31_testingLab2&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Chifir31_testingLab2)
 # testingLab2
 Класс <b>Professional_Standard</b> предназначен для обработки *docx*-файлов профессиональных стандартов.
