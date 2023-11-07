@@ -1,3 +1,4 @@
+[![Automated tests](https://github.com/Chifir31/testingLab2/actions/workflows/run_tests.yml/badge.svg)](https://github.com/Chifir31/testingLab2/actions/workflows/run_tests.yml)
 # testingLab2
 Класс <b>Professional_Standard</b> предназначен для обработки *docx*-файлов профессиональных стандартов.
 
