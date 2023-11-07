@@ -108,12 +108,12 @@ class IntegrationTestsCase(unittest.TestCase):
 
     def test_find_similar_formulationsV2(self):
         res = self.cof.find_similar_formulationsV2('Языки программирования',
-                                                   self.p.get_knowledge())
+                                                   self.p.get_knowledge_with_embeddings().keys())
         self.assertNotEqual(len(res), 0)
 
         res1 = self.cof.find_similar_formulationsV2('Осуществлять коммуникации',
-                                                    self.p.get_skills())
-        self.assertEqual(len(res1), 0)
+                                                    self.p.get_skills_with_embeddings().keys())
+        self.assertNotEqual(len(res1), 0)
 
 
 if __name__ == '__main__':

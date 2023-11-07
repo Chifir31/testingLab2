@@ -10,11 +10,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      - name: setup Python
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.9"
-      - name: install dependencies
+      - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run tests
-        run:  python -m unittest test/testing.py
+        run:  python -m unittest test/testing.py -v

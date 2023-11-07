@@ -85,12 +85,11 @@ class Comparison_Of_Formulations:
                 if formulation1 != formulation2:
                     lemmas_formulations12 = self.__preprocessing([formulation1, formulation2])
                     value1 = self.__Jacquard(lemmas_formulations12[0], lemmas_formulations12[1])
-                    if value1 == 1 and formulation1 not in identical_formulations and \
-                            formulation2 not in identical_formulations and formulation1 not in repeats\
-                            and formulation2 not in repeats:
-                        identical_formulations.append(formulation1)
-                        repeats.append(formulation1)
-                        repeats.append(formulation2)
+                    if value1 == 1:
+                        if formulation1 not in identical_formulations and formulation2 not in identical_formulations and formulation1 not in repeats and formulation2 not in repeats:
+                            identical_formulations.append(formulation1)
+                            repeats.append(formulation1)
+                            repeats.append(formulation2)
                         continue
                     value2 = round(
                         util.cos_sim(a=formulations1[formulation1], b=formulations2[formulation2]).item(), 2)
