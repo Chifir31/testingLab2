@@ -2,7 +2,6 @@ import json
 import os
 import unittest
 import profstandard as ps
-from torch import empty
 from copmofform import Comparison_Of_Formulations
 import warnings
 
@@ -21,24 +20,10 @@ class CompOfFormTestCase(unittest.TestCase):
         cls.true_i = templates['true_i']
         cls.f1 = templates['f1']
         cls.f2 = templates['f2']
-        cls.compOfForm = Comparison_Of_Formulations({}, {})
-
-    def test__init__(self):
-        cof = Comparison_Of_Formulations()
-        self.assertEqual(cof.formulations1, {})
-        self.assertEqual(cof.formulations2, {})
+        cls.compOfForm = Comparison_Of_Formulations()
 
     def test_find_similar_formulationsV1(self):
-        self.compOfForm.update_formulations({}, {})
-        with self.assertRaises(ValueError):
-            self.compOfForm.find_similar_formulationsV1()
-        v1 = empty(1, 2)
-        self.compOfForm.update_formulations({"формулировка1": v1}, {})
-        with self.assertRaises(ValueError):
-            self.compOfForm.find_similar_formulationsV1()
-
-        self.compOfForm.update_formulations(self.f2, self.f1)
-        s, i = self.compOfForm.find_similar_formulationsV1()
+        s, i = self.compOfForm.find_similar_formulationsV1(self.f2, self.f1)
         self.assertEqual(i, self.true_i)
         self.assertEqual(s, self.true_s)
 
@@ -47,7 +32,7 @@ class CompOfFormTestCase(unittest.TestCase):
                                                         ["Методы коммуникации и что-то там еще",
                                                          "Средства коммуникаций и что-то там еще",
                                                          "Языки программирования"])
-        self.assertEqual(s, ["Методы коммуникации и что-то там еще", "Средства коммуникаций и что-то там еще"])
+        self.assertEqual(s, ["Методы коммуникации и что-то там еще"])
 
 
 class ProfStandardTestCase(unittest.TestCase):

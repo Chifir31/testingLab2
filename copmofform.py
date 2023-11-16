@@ -1,8 +1,9 @@
-import re
+from re import findall
 from sentence_transformers import util
-import pymorphy2
+from pymorphy2 import MorphAnalyzer
 from torch import Tensor
 from flashtext import KeywordProcessor
+from nltk import snowball
 
 
 Synonyms = {
@@ -47,119 +48,102 @@ Synonyms = {
 
 
 class Comparison_Of_Formulations:
-    def __init__(self, formulations1: dict[str, Tensor] = None, formulations2: dict[str, Tensor] = None):
+    def __init__(self):
         self._cos_const = 0.95
         self._keyword_processor = KeywordProcessor()
         self._keyword_processor.add_keywords_from_dict(Synonyms)
-        self._morph = pymorphy2.MorphAnalyzer()
-        if formulations1 is None:
-            self.formulations1 = {}
-        else:
-            self.formulations1 = formulations1
-        if formulations2 is None:
-            self.formulations2 = {}
-        else:
-            self.formulations2 = formulations2
+        self._morph = MorphAnalyzer()
+        self.snowBallStemmer = snowball.SnowballStemmer("russian")
 
-    def update_formulations(self, formulations1: dict[str, Tensor], formulations2: dict[str, Tensor]):
-        self.formulations1 = formulations1
-        self.formulations2 = formulations2
+    @staticmethod
+    def is_identical(lemmas_first_formulation, lemmas_second_formulation):
+        if lemmas_first_formulation == lemmas_second_formulation:
+            return True
+        return False
+
+    def is_similar(self, lemmas_formulations1, lemmas_formulations2):
+        if self.__subset_check(lemmas_formulations1, lemmas_formulations2):
+            return True
+        _formulation1 = self._use_replace_keywords(lemmas_formulations1)
+        _formulation2 = self._use_replace_keywords(lemmas_formulations2)
+        if self.__subset_check(_formulation1, _formulation2):
+            return True
+        return False
 
     def find_similar_formulationsV1(self, formulations1: dict[str, Tensor] = None,
                                     formulations2: dict[str, Tensor] = None) -> [list[dict[str, str], list[str]]]:
-        if formulations1 is None:
-            if self.formulations1 == {}:
-                raise ValueError('Missing argument: formulations1 is None')
-            else:
-                formulations1 = self.formulations1
-        if formulations2 is None:
-            if self.formulations2 == {}:
-                raise ValueError('Missing argument: formulations2 is None')
-            else:
-                formulations2 = self.formulations2
-
         similar_formulations: list[tuple[str, str]] = []
-        identical_formulations, repeats = [], []
-        for formulation1 in formulations1.keys():
-            for formulation2 in formulations2.keys():
-                if formulation1 != formulation2:
-                    lemmas_formulations12 = self.__preprocessing([formulation1, formulation2])
-                    value1 = self.__Jacquard(lemmas_formulations12[0], lemmas_formulations12[1])
-                    if value1 == 1:
-                        if formulation1 not in identical_formulations and formulation2 not in identical_formulations and formulation1 not in repeats and formulation2 not in repeats:
-                            identical_formulations.append(formulation1)
-                            repeats.append(formulation1)
-                            repeats.append(formulation2)
-                        continue
-                    value2 = round(
-                        util.cos_sim(a=formulations1[formulation1], b=formulations2[formulation2]).item(), 2)
-                    if value2 >= self._cos_const:
-                        if self.__subset_check(lemmas_formulations12):
-                            similar_formulations.append((formulation1, formulation2))
-                        else:
-                            _formulation1 = self._keyword_processor.replace_keywords(
-                                ' '.join(lemmas_formulations12[0]))
-                            _formulation2 = self._keyword_processor.replace_keywords(
-                                ' '.join(lemmas_formulations12[1]))
-                            if self.__subset_check([_formulation1.split(" "), _formulation2.split(" ")]):
-                                similar_formulations.append((formulation1, formulation2))
+        identical_formulations: list[str] = []
+        for f1 in formulations1.items():
+            _lemmas_formulation1 = self.__preprocessing_with_pymorphy2(f1[0])
+            for f2 in formulations2.items():
+                if f1[0] != f2[0]:
+                    if round(util.cos_sim(a=f1[1], b=f2[1]).item(), 2) >= self._cos_const:
+                        lemmas_formulation1 = _lemmas_formulation1
+                        lemmas_formulation2 = self.__preprocessing_with_pymorphy2(f2[0])
+                        if len(lemmas_formulation1) > len(lemmas_formulation2):
+                            lemmas_formulation1 = lemmas_formulation2
+                            lemmas_formulation2 = _lemmas_formulation1
+                        if self.is_similar(lemmas_formulation1, lemmas_formulation2):
+                            similar_formulations.append((f1[0], f2[0]))
                 else:
-                    if formulation1 not in identical_formulations and formulation1 not in repeats:
-                        identical_formulations.append(formulation1)
+                    if f1[0] not in identical_formulations:
+                        identical_formulations.append(f1[0])
         update_similar_formulations = self._get_similar_formulations(similar_formulations, identical_formulations)
         return update_similar_formulations, identical_formulations
 
     def find_similar_formulationsV2(self, formulation: str, formulations: list[str]) -> list[str]:
         similar_formulations = []
+        lemmas_formulation_v1 = self.__preprocessing_with_snowball(formulation)
+        lemmas_formulation_v2 = self._get_synonym(formulation)
         for formulation2 in formulations:
-            lemmas_formulations12 = self.__preprocessing([formulation, formulation2])
-            if self.__subset_check(lemmas_formulations12):
+            _formulation2 = formulation2.lower()
+            if self.__subset_check1(lemmas_formulation_v1, _formulation2):
                 similar_formulations.append(formulation2)
             else:
-                _formulation1 = self._keyword_processor.replace_keywords(
-                    ' '.join(lemmas_formulations12[0]))
-                _formulation2 = self._keyword_processor.replace_keywords(
-                    ' '.join(lemmas_formulations12[1]))
-                if self.__subset_check([_formulation1.split(" "), _formulation2.split(" ")]):
-                    similar_formulations.append(formulation2)
+                if lemmas_formulation_v2 is not None:
+                    if self.__subset_check1(lemmas_formulation_v2, _formulation2):
+                        similar_formulations.append(formulation2)
+
         return similar_formulations
 
-    @staticmethod
-    def __Jacquard(formulations1: list[str], formulations2: list[str]) -> float:
-        formulations1 = set(formulations1)
-        shared = formulations1.intersection(formulations2)
-        total = formulations1.union(formulations2)
-        return len(shared) / len(total)
+    def _get_synonym(self, formulation):
+        lemmas_formulation = self.__preprocessing_with_pymorphy2(formulation)
+        synonym = " ".join(self._use_replace_keywords(lemmas_formulation))
+        if synonym == " ".join(lemmas_formulation):
+            return None
+        return self.__preprocessing_with_snowball(synonym)
 
-    def __preprocessing(self, formulations: list[str]) -> list[list[str]]:
-        bad_words = ["и"]
-        new_data = []
-        for form in formulations:
-            sent_lemmas = []
-            words = re.findall(r'\w+|\d+', form)
-            for word in words:
-                lemmas = self._morph.normal_forms(word[0:len(word)])
-                if lemmas[0] not in bad_words:
-                    sent_lemmas.append(lemmas[0])
-            new_data.append(sent_lemmas)
-        return new_data
+    def _use_replace_keywords(self, lemmas_formulation):
+        new_formulation: str = self._keyword_processor.replace_keywords(' '.join(lemmas_formulation))
+        return new_formulation.split(" ")
+
+    def __preprocessing_with_pymorphy2(self, formulation: str):
+        words = findall(r'\w+|\d+', formulation)
+        return [self._morph.normal_forms(word[0:len(word)])[0] for word in words]
+
+    def __preprocessing_with_snowball(self, formulation):
+        words = findall(r'\w+|\d+', formulation)
+        return [self.snowBallStemmer.stem(word[0:len(word)]) for word in words]
 
     @staticmethod
-    def __subset_check(formulations) -> bool:
-        if len(formulations[1]) > len(formulations[0]):
-            formulation1, formulation2 = formulations[0], formulations[1]
-        else:
-            formulation1, formulation2 = formulations[1], formulations[0]
-        for formulation in formulation1:
-            if formulation not in formulation2:
+    def __subset_check1(words, formulation: str) -> bool:
+        for word in words:
+            if formulation.find(word) == -1:
+                return False
+        return True
+
+    @staticmethod
+    def __subset_check(short_formulation, long_formulation) -> bool:
+        for formulation in short_formulation:
+            if formulation not in long_formulation:
                 return False
         return True
 
     @staticmethod
     def _get_similar_formulations(formulations: list[tuple[str, str]],
                                   identical_formulations: list[str]) -> list[dict[str, str]]:
-        new_formulations = []
-        for formulation12 in formulations:
-            if formulation12[0] not in identical_formulations and formulation12[1] not in identical_formulations:
-                new_formulations.append({"form1": formulation12[0], "form2": formulation12[1]})
+        new_formulations = [{"form1": formulation12[0], "form2": formulation12[1]} for formulation12 in formulations
+                            if formulation12[0] not in identical_formulations
+                            and formulation12[1] not in identical_formulations]
         return new_formulations
